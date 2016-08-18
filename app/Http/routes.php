@@ -12,5 +12,8 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return 'Stuff is updating!';
 });
+
+Route::post('butler',['uses'=>'ButlerController@index']);
+
