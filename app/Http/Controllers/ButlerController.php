@@ -85,8 +85,37 @@ class ButlerController extends Controller
 		return 'It seems you have reacted to all the current listings. Please check back later!';
 	}
 
-	private function liked($userID){	
-		return 'This functionality is not implemented yet! Check back later!';
+	private function liked($userID){
+		$history = $this->getHistory();
+		if($history == null){
+			return 'At this time, Channel History is not available. Please contact the developer.';
+		}
+		$userID = request()->input('user_id');
+		$likedListings = [];
+		foreach($history as $listing){
+			$allReactions = $listing['reactions'];
+			foreach($allReactions as $reaction){
+				if($reaction['name'] == '+1'){
+					$users = $reaction['users'];
+					if(in_array($userID,$users)){
+						$likedListings[] = $listing['ts'];
+						break;
+					}
+					break;
+				}
+			}
+		}
+		
+		if(count($likedListings) == 0){
+			return "It seems you haven't liked any listings! Use the '+1' reaction to like a listing.";
+		}
+		$response = '';
+		foreach($likedListings as $listing){
+			$url = "https://mtv-engres-househunt.slack.com/archives/interest/p".str_replace('.','',$listing);
+			$response = $response . $url . '\n';
+		}
+		//Return the links here.
+		return $response;
 	}
 
 	private function disliked($userID){
