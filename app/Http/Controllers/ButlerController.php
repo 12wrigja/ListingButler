@@ -14,7 +14,7 @@ class ButlerController extends Controller
 		return response('Invalid Token',400);
 	}
 
-	$configToken = env('SLACK_TOKEN');
+	$configToken = env('SLACK_VALID_REQUEST_TOKEN');
 	if($configToken != $token){
 		return response('Invalid Token',400);
 	}
