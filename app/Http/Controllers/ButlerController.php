@@ -140,8 +140,8 @@ class ButlerController extends Controller
 				$users = $reaction['users'];
 				if(in_array($userID,$users)){
 					$didReact = true;
+					break;
 				}
-				break;
 			}
 			if(!$didReact){
 				$leftToReactTo++;
