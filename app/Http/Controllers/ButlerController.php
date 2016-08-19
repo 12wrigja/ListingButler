@@ -8,7 +8,7 @@ use App\Http\Requests;
 
 class ButlerController extends Controller
 {
-	private $functions = ['next','liked','disliked','help'];
+	private $functions = ['next','liked','disliked','help','remaining'];
 
     public function index(){
 	$token = request()->input('token');
@@ -126,6 +126,30 @@ class ButlerController extends Controller
 
 	private function help($userID){
 		return "Hello there! I'm the Listing Butler, and I'm here to make your life easier.\nCurrently, I support 4 commands:\n\nhelp: returns this message\nnext: returns a link to the next listing that you haven't reacted to, or a message if you have already reacted to all listings.\nliked: returns links to all the listings you have liked.\ndisliked: returns links to all the listings you have disliked";
+	}
+
+	public function remaining($userID){
+		$history = $this->getHistory();
+		if($history == null){
+			return 'At this time, Channel History is not available. Please contact the developer.';
+		}
+		$userID = request()->input('user_id');
+		$leftToReactTo = 0;
+		foreach($history as $listing){
+			$allReactions = $listing['reactions'];
+			$didReact = false;
+			foreach($allReactions as $reaction){
+				$users = $reaction['users'];
+				if(in_array($userID,$users)){
+					$didReact = true;
+				}
+				break;
+			}
+			if(!$didReact){
+				$leftToReactTo++;
+			}
+		}
+		return 'You have '.$leftToReactTo.' listings to react to.';	
 	}
 
 	public function getHistory(){
