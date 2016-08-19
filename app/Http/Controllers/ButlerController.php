@@ -8,6 +8,8 @@ use App\Http\Requests;
 
 class ButlerController extends Controller
 {
+	private $functions = ['next','liked','disliked','help'];
+
     public function index(){
 	$token = request()->input('token');
 	if($token == null){
@@ -26,11 +28,11 @@ class ButlerController extends Controller
 	if(count($argsSplit) == 0){
 		return $this->help();
 	}
-	
+	$userID = request()->input('user_id');
 	$method = $argsSplit[0];
-	if(method_exists($this,$method)){
+	if(in_array($method,$this->functions) && method_exists($this,$method)){
 		if(count($argsSplit) == 1){
-			return $this->$method();
+			return $this->$method($userID);
 		} else {
 			//TODO call methods with arguments here.
 		}
@@ -40,7 +42,7 @@ class ButlerController extends Controller
 	
 	}
 
-	private function info(){
+	private function info($userID){
 		if(request()->input('user_name') == '12wrigja'){
 			$response = '';
 			foreach(request()->all() as $key=>$value){
@@ -52,19 +54,57 @@ class ButlerController extends Controller
 		}
 	}
 	
-	private function next(){
+	private function next($userID){
+		$history = $this->getHistory();
+		if($history == null){
+			return 'At this time, Channel History is not available. Please contact the developer.';
+		}
+		$userID = request()->input('user_id');
+		$index = 0;
+		$totalListings = count($history);
+		$nextListing = null;
+		while($index < $totalListings){
+			$listing = $history[$index];
+			$allReactions = $listing['reactions'];
+			$didReact = false;
+			foreach($allReactions as $reaction){
+				$users = $reaction['users'];
+				if(in_array($userID,$users)){
+					$didReact = true;
+					break;
+				}
+			}
+			if(!$didReact){
+			//Return the link here. For the time being, return the timestamp.
+			$url = "https://mtv-engres-househunt.slack.com/archives/interest/p".str_replace('.','',$listing['ts']);
+				return $url;
+			} else {
+				$index++;
+			}
+		}
+		return 'It seems you have reacted to all the current listings. Please check back later!';
+	}
+
+	private function liked($userID){	
 		return 'This functionality is not implemented yet! Check back later!';
 	}
 
-	private function liked(){	
-		return 'This functionality is not implemented yet! Check back later!';
-	}
-
-	private function disliked(){
+	private function disliked($userID){
 		return 'This functionality is not implemented yet! Check back later!';	
 	}
 
-	private function help(){
+	private function help($userID){
 		return "Hello there! I'm the Listing Butler, and I'm here to make your life easier.\nCurrently, I support 4 commands:\n\nhelp: returns this message\nnext: returns a link to the next listing that you haven't reacted to, or a message if you have already reacted to all listings.\nliked: returns links to all the listings you have liked.\ndisliked: returns links to all the listings you have disliked";
 	}
+
+	public function getHistory(){
+		$slackToken = env('SLACK_ACCESS_TOKEN');
+		$historyURL = 'https://slack.com/api/channels.history?token='.$slackToken.'&channel=C1ZD2NTR8';
+		$client = new \GuzzleHttp\Client();
+		$res = json_decode($client->request('GET',$historyURL,[])->getBody()->getContents(),true);
+		if(!$res['ok']){
+			return null;
+		}
+		return $res['messages'];
+	} 
 }
