@@ -109,13 +109,15 @@ class ButlerController extends Controller
 		if(count($likedListings) == 0){
 			return "It seems you haven't liked any listings! Use the '+1' reaction to like a listing.";
 		}
-		$response = '';
+		$response = "";
 		foreach($likedListings as $listing){
 			$url = "https://mtv-engres-househunt.slack.com/archives/interest/p".str_replace('.','',$listing);
-			$response = $response . $url . '\n';
+			$response = $response . $url . "\n";
 		}
 		//Return the links here.
-		return $response;
+		$respJson = [];
+		$respJson['text'] = $response;
+		return response()->json($respJson);
 	}
 
 	private function disliked($userID){
