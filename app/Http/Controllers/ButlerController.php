@@ -10,36 +10,34 @@ class ButlerController extends Controller
 {
 	private $functions = ['next','liked','disliked','help','remaining'];
 
-    public function index(){
-	$token = request()->input('token');
-	if($token == null){
-		return response('Invalid Token',400);
-	}
-
-	$configToken = env('SLACK_VALID_REQUEST_TOKEN');
-	if($configToken != $token){
-		return response('Invalid Token',400);
-	}
-
-	$text = request()->input('text');
-
-	$argsSplit = preg_split('#\s+#',$text,null,PREG_SPLIT_NO_EMPTY);
-
-	if(count($argsSplit) == 0){
-		return $this->help();
-	}
-	$userID = request()->input('user_id');
-	$method = $argsSplit[0];
-	if(in_array($method,$this->functions) && method_exists($this,$method)){
-		if(count($argsSplit) == 1){
-			return $this->$method($userID);
-		} else {
-			//TODO call methods with arguments here.
+    	public function index(){
+		$token = request()->input('token');
+		if($token == null){
+			return response('Invalid Token',400);
 		}
-	} else {
-		return "I'm sorry: I don't know what to do with the command: ".$method;
-	}
+		$configToken = env('SLACK_VALID_REQUEST_TOKEN');
+		if($configToken != $token){
+			return response('Invalid Token',400);
+		}
+
+		$text = request()->input('text');
+
+		$argsSplit = preg_split('#\s+#',$text,null,PREG_SPLIT_NO_EMPTY);
+    	$userID = request()->input('user_id');
+		if(count($argsSplit) == 0){
+			return $this->help($userID);
+		}
 	
+		$method = $argsSplit[0];
+		if(in_array($method,$this->functions) && method_exists($this,$method)){
+			if(count($argsSplit) == 1){
+				return $this->$method($userID);
+			} else {
+				//TODO call methods with arguments here.
+			}
+		} else {
+			return "I'm sorry: I don't know what to do with the command: ".$method;
+		}
 	}
 
 	private function info($userID){
@@ -125,7 +123,7 @@ class ButlerController extends Controller
 	}
 
 	private function help($userID){
-		return "Hello there! I'm the Listing Butler, and I'm here to make your life easier.\nCurrently, I support 4 commands:\n\nhelp: returns this message\nnext: returns a link to the next listing that you haven't reacted to, or a message if you have already reacted to all listings.\nliked: returns links to all the listings you have liked.\ndisliked: returns links to all the listings you have disliked";
+		return "Hello there! I'm the Listing Butler, and I'm here to make your life easier.\nCurrently, I support 5 commands:\n\nhelp: returns this message.\nnext: returns a link to the next listing that you haven't reacted to, or a message if you have already reacted to all listings.\nliked: returns links to all the listings you have liked.\ndisliked: returns links to all the listings you have disliked\nremaining: tells you the number of listings you have not reacted to.";
 	}
 
 	public function remaining($userID){
